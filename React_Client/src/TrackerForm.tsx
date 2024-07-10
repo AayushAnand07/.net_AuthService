@@ -73,7 +73,7 @@ interface AmortizationEntry {
   }
 const LoanCalculator: React.FC = () => {
   const [loanAmount, setLoanAmount] = useState<number>(100000);
-  const [loanTerm, setLoanTerm] = useState<number>(180); // Default to 15 years (180 months)
+  const [loanTerm, setLoanTerm] = useState<number>(180); 
   const [interestRate, setInterestRate] = useState<number>(5);
   const [isYears, setIsYears] = useState<boolean>(true);
   const [amortizationSchedule, setAmortizationSchedule] = useState<AmortizationEntry[]>([]);
