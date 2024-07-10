@@ -2938,11 +2938,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/aayush/DotNet/auth-api/auth-api.csproj",
+      "projectUniqueName": "/home/aayush/DotNet/auth-api/Dotnet_Backend/auth-api.csproj",
       "projectName": "auth-api",
-      "projectPath": "/home/aayush/DotNet/auth-api/auth-api.csproj",
+      "projectPath": "/home/aayush/DotNet/auth-api/Dotnet_Backend/auth-api.csproj",
       "packagesPath": "/home/aayush/.nuget/packages/",
-      "outputPath": "/home/aayush/DotNet/auth-api/obj/",
+      "outputPath": "/home/aayush/DotNet/auth-api/Dotnet_Backend/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/aayush/.nuget/NuGet/NuGet.Config"

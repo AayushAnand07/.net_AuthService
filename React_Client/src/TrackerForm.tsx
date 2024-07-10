@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import './App.css'
+import ReactToPrint from 'react-to-print';
+
+import React, { useState,useRef } from 'react';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 interface SliderInputProps {
   label: string;
   value: number;
@@ -15,7 +18,22 @@ interface SliderInputProps {
   step: number;
   unit: string;
 }
+const preparePieChartData = (schedule: AmortizationEntry[]) => {
+  const totalPrincipal = schedule.reduce((sum, entry) => sum + entry.principalPayment, 0);
+  const totalInterest = schedule.reduce((sum, entry) => sum + entry.interest, 0);
+  return [
+    { name: 'Principal', value: totalPrincipal },
+    { name: 'Interest', value: totalInterest },
+  ];
+};
 
+const prepareBarChartData = (schedule: AmortizationEntry[]) => {
+  return schedule.map(entry => ({
+    month: entry.month,
+    principal: entry.principalPayment,
+    interest: entry.interest,
+  }));
+};
 const SliderInput: React.FC<SliderInputProps> = ({ label, value, onChange, min, max, step, unit }) => {
   return (
     <div className="space-y-2">
@@ -59,6 +77,7 @@ const LoanCalculator: React.FC = () => {
   const [interestRate, setInterestRate] = useState<number>(5);
   const [isYears, setIsYears] = useState<boolean>(true);
   const [amortizationSchedule, setAmortizationSchedule] = useState<AmortizationEntry[]>([]);
+  const componentRef = useRef<HTMLDivElement>(null);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +106,7 @@ const LoanCalculator: React.FC = () => {
 
     } catch (error) {
       console.error('There was an error calling the API:', error);
-      // Here you might want to set an error state or display an error message to the user
+      
     }
   };
 
@@ -103,6 +122,24 @@ const LoanCalculator: React.FC = () => {
     }
     setIsYears(!isYears);
   };
+  const COLORS = ['#0088FE', '#00C49F'];
+
+
+const pieChartData = preparePieChartData(amortizationSchedule);
+const barChartData = prepareBarChartData(amortizationSchedule);
+const totalInterestPayable = amortizationSchedule.reduce((sum, entry) => sum + entry.interest, 0);
+  const totalPayment = loanAmount + totalInterestPayable;
+
+  const handlePrint = () => {
+    const printContent = document.getElementById('print-summary');
+    const originalContent = document.body.innerHTML;
+  
+    document.body.innerHTML = printContent!.innerHTML;
+    window.print();
+    document.body.innerHTML = originalContent;
+    window.location.reload();  // To ensure React re-renders the components
+  };
+  
 
   return (
     <div className="max-w-4xl mx-auto mt-10 px-4">
@@ -175,8 +212,73 @@ const LoanCalculator: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-
+      
       {amortizationSchedule.length > 0 && (
+        
+        <div ref={componentRef} className='mt-8'>
+          <h2 id="print-summary" className='text-2xl  font-bold mb-4'>Payment Breakdown</h2>
+
+          <Card className="mt-6 w-full">
+        <CardHeader>
+          <CardTitle className="text-xl">EMI Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="font-semibold">Loan EMI</p>
+              <p>₹ {amortizationSchedule[0].emi.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Total Interest Payable</p>
+              <p>₹ {totalInterestPayable.toFixed(2)}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Total Payment(Principal + Interest) </p>
+              <p>₹ {totalPayment.toFixed(2)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+       
+      <div className="flex flex-wrap">
+        <div className="w-full md:w-1/2 p-4">
+          <h3 className="text-xl font-semibold mb-2">Overall Principal vs Interest</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {pieChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="w-full md:w-1/2 p-4">
+          <h3 className="text-xl font-semibold mb-2">Principal vs Interest Over Time</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={barChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="principal" fill="#0088FE" stackId="a" name="Principal" />
+              <Bar dataKey="interest" fill="#00C49F" stackId="a" name="Interest" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    
         <Card className="mt-6 w-full">
           <CardHeader>
             <CardTitle className="text-xl">Amortization Schedule</CardTitle>
@@ -207,10 +309,22 @@ const LoanCalculator: React.FC = () => {
       ))}
     </tbody>
   </table>
+  <ReactToPrint
+  trigger={() =>  <Button type="button" className="w-full mt-4">Print Payment Summary</Button>}
+  content={() => componentRef.current}
+  onBeforeGetContent={() => {
+    
+  }}
+  onAfterPrint={() => {
+    
+  }}
+/>
 </div>
           </CardContent>
         </Card>
+        </div>
       )}
+
 
     </div>
   );
