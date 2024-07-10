@@ -7,9 +7,9 @@ public class ApiDbContext: DbContext{
 
 
 }
- public DbSet<RegisterUser> user_auth { get; set; }
+ public DbSet<RegisterUserRequest> user_auth { get; set; }
 
-
+ 
 
 
 

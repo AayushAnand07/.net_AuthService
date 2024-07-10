@@ -103,3 +103,4 @@
 /home/aayush/DotNet/auth-api/obj/Debug/net8.0/auth-api.genruntimeconfig.cache
 /home/aayush/DotNet/auth-api/obj/Debug/net8.0/ref/auth-api.dll
 /home/aayush/DotNet/auth-api/bin/Debug/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll
+/home/aayush/DotNet/auth-api/obj/Debug/net8.0/auth-api.sourcelink.json
